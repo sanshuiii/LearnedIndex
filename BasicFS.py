@@ -83,7 +83,7 @@ class DataProvider():
         :return:
         """
         self.file.seek(0)
-        df = pd.DataFrame(None, index=[i for i in range(30)],
+        df = pd.DataFrame(None, index=[i for i in range(self.MAXLEN)],
                           columns=[str(i) for i in range(10)] + [chr(i) for i in range(ord('a'), ord('g'))],
                           dtype=np.int)
         df = df.fillna(0)
@@ -95,8 +95,8 @@ class DataProvider():
             offset += len(line)
             k = line[:line.find(' ')]
             len_freq[len(k)] = len_freq.get(len(k), 0) + 1
-            if fill_zero and len(k) < 30:
-                k = k + "0" * (30 - len(k))
+            if fill_zero and len(k) < self.MAXLEN:
+                k = k + "0" * (self.MAXLEN - len(k))
             v = self._str2base10(k, False)
             for idx, b in enumerate(k):
                 df[b][idx] += 1
