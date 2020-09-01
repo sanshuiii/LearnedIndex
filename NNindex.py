@@ -14,10 +14,10 @@ if __name__=="__main__":
         x[i] = (x[i]-mix)/(mxx-mix)
         y[i] = (y[i]-miy)/(mxy-miy)
 
-    print(x)
-    print(y)
-
-    x = torch.tensor(x, requires_grad=False).T
-    y = torch.tensor(y, requires_grad=False).T
+    x = torch.tensor(x, requires_grad=False).view(-1,1)
+    y = torch.tensor(y, requires_grad=False).view(-1,1)
 
     net = NN.NeuralNet()
+
+    print(x)
+
