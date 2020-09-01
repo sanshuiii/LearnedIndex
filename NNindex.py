@@ -2,7 +2,11 @@ import BasicFS
 import NN
 import torch
 
-if __name__=="__main__":
+import matplotlib.pyplot as plt
+
+if __name__ == "__main__":
+    # torch.random.manual_seed(19260817)
+
     bs = BasicFS.DataProvider('sorted_demo_data')
     x, y = bs.gen_test_data()
 
@@ -11,13 +15,22 @@ if __name__=="__main__":
     mix = min(x)
     miy = min(y)
     for i in range(len(x)):
-        x[i] = (x[i]-mix)/(mxx-mix)
-        y[i] = (y[i]-miy)/(mxy-miy)
+        x[i] = (x[i] - mix) / (mxx - mix)
+        y[i] = (y[i] - miy) / (mxy - miy)
 
-    x = torch.tensor(x, requires_grad=False).view(-1,1)
-    y = torch.tensor(y, requires_grad=False).view(-1,1)
+    x = torch.tensor(x, requires_grad=False).view(-1, 1)
+    y = torch.tensor(y, requires_grad=False).view(-1, 1)
 
     net = NN.NeuralNet()
 
-    print(x)
+    for j in range(10000):
+        for i in range(10000):
+            loss = NN.run_session(net, x, y, True)
 
+        loss, predict = NN.run_session(net, x, y, False)
+
+        # plt.plot(x.view(-1), predict.view(-1))
+        # plt.plot(x.view(-1), y.view(-1))
+        plt.figure()
+        plt.plot(x.view(-1), ((y-predict)*(mxy-miy)+miy).view(-1))
+        plt.show()

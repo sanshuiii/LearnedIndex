@@ -8,16 +8,18 @@ class NeuralNet(nn.Module):
         self.fc1 = nn.Linear(1, 200)
         self.fc2 = nn.Linear(200, 30)
         self.fc3 = nn.Linear(30, 1)
+        # self.fc = nn.Linear(1,1)
 
     def forward(self, input):
         hidden = nn.functional.relu(self.fc1(input))
-        hidden = nn.functional.relu(self.fc2(hidden))
+        hidden = torch.sigmoid(self.fc2(hidden))
         output = torch.sigmoid(self.fc3(hidden))
+        # output = nn.functional.relu(self.fc(input))
         return output
 
 
 def run_session(model, input, output, is_train=False):
-    optimizer = torch.optim.SGD(net.parameters(), lr=0.01)
+    optimizer = torch.optim.Adam(model.parameters())
     criterion = nn.MSELoss()
 
     if is_train:
@@ -34,7 +36,7 @@ def run_session(model, input, output, is_train=False):
         with torch.no_grad():
             predict = model(input)
             loss = criterion(output, predict)
-            return loss
+            return loss, predict
 
 
 if __name__ == "__main__":
