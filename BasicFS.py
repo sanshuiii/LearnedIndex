@@ -90,7 +90,7 @@ class DataProvider():
         len_freq = {}
         distribute = {}
         offset = 0
-        for line in self.file.readlines():
+        for line in self.file.readlines()[::1000]:
             # print(offset)
             offset += len(line)
             k = line[:line.find(' ')]
@@ -145,9 +145,5 @@ class DataProvider():
 
 
 if __name__ == '__main__':
-    bs = DataProvider('sorted_demo_data')
-    bs.file.seek(0,2)
-    print(bs.file.tell())
-    for i in range(36054-5,36054+100):
-        v = bs.query_value(i,fuzzy=True)
-        print(v)
+    bs = DataProvider('sorted_dataset_2')
+    bs.statistics(False)
