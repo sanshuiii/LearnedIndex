@@ -5,28 +5,47 @@ from torch import nn
 class NeuralNet(nn.Module):
     def __init__(self):
         super(NeuralNet, self).__init__()
-        self.fc1 = nn.Linear(2, 8)
-        self.fc2 = nn.Linear(8, 1)
+        self.fc1 = nn.Linear(1, 200)
+        self.fc2 = nn.Linear(200, 30)
+        self.fc3 = nn.Linear(30, 1)
 
     def forward(self, input):
-        hidden = self.fc1(input)
-        output = self.fc2(hidden)
+        hidden = nn.functional.relu(self.fc1(input))
+        hidden = nn.functional.relu(self.fc2(hidden))
+        output = torch.sigmoid(self.fc3(hidden))
         return output
+
+
+def run_session(model, input, output, is_train=False):
+    optimizer = torch.optim.SGD(net.parameters(), lr=0.01)
+    criterion = nn.MSELoss()
+
+    if is_train:
+        model.train()
+        predict = model(input)
+        loss = criterion(output, predict)
+
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        return loss
+    else:
+        model.eval()
+        with torch.no_grad():
+            predict = model(input)
+            loss = criterion(output, predict)
+            return loss
 
 
 if __name__ == "__main__":
     net = NeuralNet()
-    b = torch.tensor([1.0, 0.0])
+    b = torch.tensor([0.3])
     print(net(b))
 
-    optim = torch.optim.SGD(net.parameters(), lr=0.01)
-    criterion = nn.MSELoss()
+    for i in range(1000):
+        loss = run_session(net, b, torch.tensor([0.7]), True)
+        if i % 100 == 0:
+            print(loss)
 
-    for i in range(10000):
-        loss = criterion(net(b), torch.tensor(3.0))
-        optim.zero_grad()
-        loss.backward()
-        optim.step()
-
-    b = net(torch.tensor([1.0, 0.0]))
+    b = net(torch.tensor([0.3]))
     print(b)
