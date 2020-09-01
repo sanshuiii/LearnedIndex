@@ -5,7 +5,7 @@ import torch
 import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
-    # torch.random.manual_seed(19260817)
+    torch.random.manual_seed(19260817)
 
     bs = BasicFS.DataProvider('sorted_demo_data')
     x, y = bs.gen_test_data()
@@ -23,14 +23,16 @@ if __name__ == "__main__":
 
     net = NN.NeuralNet()
 
-    for j in range(10000):
-        for i in range(10000):
+    for j in range(1):
+        for i in range(1000):
             loss = NN.run_session(net, x, y, True)
 
         loss, predict = NN.run_session(net, x, y, False)
 
         # plt.plot(x.view(-1), predict.view(-1))
         # plt.plot(x.view(-1), y.view(-1))
-        plt.figure()
+        # plt.figure()
         plt.plot(x.view(-1), ((y-predict)*(mxy-miy)+miy).view(-1))
         plt.show()
+
+        print(loss)
