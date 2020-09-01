@@ -2,17 +2,21 @@ import os
 import logging
 import pandas as pd
 import numpy as np
-class BasicFS():
-    ITEMLEN=61
-    def __init__(self,filename='KVFIle'):
-        if not os.path.exists(filename):
-            with open(filename,'w',encoding='utf-8'):
-                pass
-        self.file=open(filename,'r+t',encoding='utf-8')
 
-    def query_value(self,offset,fuzzy=True)->(bool,str):
+class BasicFS():
+
+    ITEMLEN=61
+    MAXLEN=30
+
+    def __init__(self, filename='KVFIle'):
+        if not os.path.exists(filename):
+            with open(filename, 'w', encoding='utf-8'):
+                pass
+        self.file=open(filename, 'r+t', encoding='utf-8')
+
+    def query_value(self, offset, fuzzy=True) -> (bool,str):
         self.file.seek(offset-self.ITEMLEN)
-        buf=self.file.read(self.ITEMLEN*2+2)
+        buf = self.file.read(self.ITEMLEN*2+2)
         if not fuzzy and buf[0]!='\n':#精准模式下没找到
             logging.warning("offset:{}\t is not a head of KV pair,and this query is exact mode".format(offset))
             return False,''
@@ -58,20 +62,25 @@ class BasicFS():
                 f.write("{},{}\n".format(k,v))
         df.to_csv('freq.csv')
 
-    def gen_offset(self)->dict:
+    def gen_offset(self) -> dict:
         """
 
         :return: {key:offset} the type of key is str and the type of offset is int
         """
         offset = 0
         self.file.seek(0)
-        res={}
+        res = {}
         for line in self.file.readlines():
             # print(offset)
             offset += len(line)
             k = line[:line.find(' ')]
             res[k]=offset
         return res
+
+    def _str2base10(self, str):
+        if len(str) < self.MAXLEN:
+            str = str + "0" * (self.MAXLEN - len(str))
+        return int(str,16)
 
     def gen_test_data(self,isheader=True)->(list,list):
         """
@@ -80,14 +89,15 @@ class BasicFS():
         """
         offset = 0
         self.file.seek(0)
-        X =[]
-        Y=[]
+        X = []
+        Y = []
         for line in self.file.readlines():
             offset += len(line)
-            k =line[:line.find(' ')]
-            X.append(k)
+            k = line[:line.find(' ')]
+            X.append(self._str2base10(k))
             Y.append(offset)
-        return (X,Y)
+        return (X, Y)
+
 
 if __name__ == '__main__':
     bs=BasicFS('sorted_demo_data')
