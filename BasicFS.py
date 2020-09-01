@@ -13,35 +13,80 @@ class DataProvider():
             with open(filename, 'w', encoding='utf-8'):
                 pass
         self.file = open(filename, 'r+t', encoding='utf-8')
+        self.file.seek(0)
+        buf=self.file.read(self.ITEMLEN)
+        self.first_item=buf.find('\n')
+
+    def _splitKV(self,buf:str)->(bool,str):
+        if buf.count(' ') != 1:
+            logging.warning("not valid KV pair:{}".format(buf))
+            return False, ''
+        return True, buf.split(' ')[1]
 
     def query_value(self, offset, fuzzy=True) -> (bool, str):
-        self.file.seek(offset - self.ITEMLEN)
+        """
+
+        :param offset:
+        :param fuzzy: 是否是模糊模式，精准模式认为offset指向KV的头
+        :return:
+        """
+        #第一个KV对的特殊处理
+        if offset<self.first_item:
+            if offset!=0:
+                logging.warning("offset:{}\t is not a head of KV pair,and this query is exact mode".format(offset))
+                return False, ''
+            self.file.seek(0)
+            buf = self.file.read(self.ITEMLEN)
+            if not fuzzy and offset!=0:
+                return False,''
+            return self._splitKV(buf[:self.first_item])
+
+        self.file.seek(max(offset - self.ITEMLEN,0))
         buf = self.file.read(self.ITEMLEN * 2 + 2)
-        if not fuzzy and buf[0] != '\n':  # 精准模式下没找到
+
+        if self.ITEMLEN*2+2-len(buf)>0:#结束部分
+            if len(buf)<self.ITEMLEN:
+                logging.warning("offset:{} too big".format(offset))
+                return False, ''
+            else:
+                buf = buf.strip()
+                return self._splitKV(buf[buf.rfind("\n"):])
+
+
+        pos=self.ITEMLEN
+        if not fuzzy and buf[pos - 1] != '\n':  # 精准模式下没找到
             logging.warning("offset:{}\t is not a head of KV pair,and this query is exact mode".format(offset))
             return False, ''
-        if buf[0] == '\n':  # 准确找到了
-            if buf.find(' ') <= 0:
-                logging.warning("not valid KV pair in offset:{}".format(offset))
-                return False, ''
-            begin = buf.find(' ')
-            end = buf.rfind(' ') if buf.count(' ') > 1 else -1
-            return True, buf[begin:end].strip()
+        if buf[pos-1] == '\n':  # 准确找到了
+            tail=buf[pos:].find('\n')+pos
+            return self._splitKV(buf[pos:tail])
         # 确定offset所在的行
-        first_blank = buf[:offset - 1].rfind('\n')
-        second_blank = buf[offset - 1:].find('\n')
-        if first_blank >= 0 and second_blank >= 0:
-            return True, buf[first_blank + 1:second_blank].split(' ')[1]
-        else:
-            return False, ''
 
-    def statistics(self):
+        head,tail = -1,-1
+        for i in range(pos,-1,-1):
+            if buf[i]=='\n':
+                head=i+1
+                break
+        for i in range(pos+1,len(buf)):
+            if buf[i]=='\n':
+                tail=i
+                break
+        if tail>head:
+            return self._splitKV(buf[head:tail])
+        else:
+            return False,''
+
+    def statistics(self, fill_zero=True):
+        """
+
+        :param fill_zero: 不满30位是否补充后置0
+        :return:
+        """
         self.file.seek(0)
         df = pd.DataFrame(None, index=[i for i in range(30)],
                           columns=[str(i) for i in range(10)] + [chr(i) for i in range(ord('a'), ord('g'))],
                           dtype=np.int)
         df = df.fillna(0)
-        # freq=[{}for i in range(30)]
         len_freq = {}
         distribute = {}
         offset = 0
@@ -50,14 +95,13 @@ class DataProvider():
             offset += len(line)
             k = line[:line.find(' ')]
             len_freq[len(k)] = len_freq.get(len(k), 0) + 1
-            if len(k) < 30:
+            if fill_zero and len(k) < 30:
                 k = k + "0" * (30 - len(k))
-            v = 0
+            v = self._str2base10(k, False)
             for idx, b in enumerate(k):
                 df[b][idx] += 1
-                # freq[idx][b]=freq[idx].get('b',0)+1
-                v += eval("0x" + b) * (16 ** idx) / 1000000000
-            distribute[v] = distribute.get(v, 0) + 1
+            # distribute[v]=distribute.get(v,0)+1
+            distribute[offset] = v / 1000000000
         with open('distribute.csv', 'w') as f:
             for k, v in distribute.items():
                 f.write("{},{}\n".format(k, v))
@@ -78,8 +122,8 @@ class DataProvider():
             res[k] = offset
         return res
 
-    def _str2base10(self, str):
-        if len(str) < self.MAXLEN:
+    def _str2base10(self, str, fill=True):
+        if fill and len(str) < self.MAXLEN:
             str = str + "0" * (self.MAXLEN - len(str))
         return int(str, 16)
 
@@ -93,7 +137,7 @@ class DataProvider():
         X = []
         Y = []
         for line in self.file.readlines():
-            offset += len(line)
+            offset += len(line) / 2 if isheader else len(line)
             k = line[:line.find(' ')]
             X.append(self._str2base10(k))
             Y.append(offset)
@@ -102,5 +146,8 @@ class DataProvider():
 
 if __name__ == '__main__':
     bs = DataProvider('sorted_demo_data')
-    x, y = bs.gen_test_data()
-    print(y)
+    bs.file.seek(0,2)
+    print(bs.file.tell())
+    for i in range(36054-5,36054+100):
+        v = bs.query_value(i,fuzzy=True)
+        print(v)
