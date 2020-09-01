@@ -3,7 +3,7 @@ import logging
 import pandas as pd
 import numpy as np
 
-class BasicFS():
+class DataProvider():
 
     ITEMLEN=61
     MAXLEN=30
@@ -100,5 +100,6 @@ class BasicFS():
 
 
 if __name__ == '__main__':
-    bs=BasicFS('sorted_demo_data')
-    bs.statistics()
+    bs=DataProvider('sorted_demo_data')
+    x,y = bs.gen_test_data()
+    print(y)
