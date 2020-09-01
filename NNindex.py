@@ -17,7 +17,7 @@ if __name__=="__main__":
     print(x)
     print(y)
 
-    x = torch.tensor(x, requires_grad=False)
-    y = torch.tensor(y, requires_grad=False)
+    x = torch.tensor(x, requires_grad=False).T
+    y = torch.tensor(y, requires_grad=False).T
 
     net = NN.NeuralNet()
