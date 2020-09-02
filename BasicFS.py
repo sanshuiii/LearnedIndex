@@ -136,11 +136,13 @@ class DataProvider():
         self.file.seek(0)
         X = []
         Y = []
-        for line in self.file.readlines():
-            offset += len(line) / 2 if isheader else len(line)
-            k = line[:line.find(' ')]
-            X.append(self._str2base10(k))
-            Y.append(offset)
+        with open('raw_index','w') as f:
+            for line in self.file.readlines():
+                offset += len(line) / 2 if isheader else len(line)
+                k = line[:line.find(' ')]
+                X.append(self._str2base10(k))
+                Y.append(offset)
+                f.write("{}\t{}".format(k,offset))
         return X, Y
 
 
