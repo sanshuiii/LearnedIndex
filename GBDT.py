@@ -28,9 +28,9 @@ if __name__ == '__main__':
     LR.fit(data, label)
     y1 = LR.predict(data)
     lbegin=GBDT_CONFIG.get('leaf_begin',10)
-    lend=GBDT_CONFIG.get('leaf_end',)
+    lend=GBDT_CONFIG.get('leaf_end',50)
     nbegin = GBDT_CONFIG.get('node_begin', 10)
-    nend = GBDT_CONFIG.get('node_end', )
+    nend = GBDT_CONFIG.get('node_end', 50)
     df=pd.DataFrame(columns=list(range(nbegin,nend)),index=list(range(lbegin,lend)))
     for i in range(lbegin,lend):
         for j in range(nbegin,nend):
