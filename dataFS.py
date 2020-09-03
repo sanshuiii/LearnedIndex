@@ -89,10 +89,28 @@ class DataFS():
             for line in self.file.readlines():
                 k = line[:line.find(' ')]
                 X.append(k)
-                Y.append(offset+len(line) / 2 if isheader else len(line))
+                Y.append(offset+len(line) if isheader else len(line) / 2)
                 f.write("{}\t{}\n".format(k, offset))
                 offset += len(line)
         return X, Y
+
+    def cal_offset(self):
+        offset = 0
+        self.file.seek(0)
+        res={}
+        for line in self.file.readlines():
+            k = line[:line.find(' ')]
+            # k = k[:10]
+            # ret = 0
+            # if int(k[:2]) == 9:
+            #     ret += 60 * 60 * 24 * 31
+            # ret += int(k[2:4]) * 60 * 60 * 24
+            # ret += int(k[4:6]) * 60 * 60
+            # ret += int(k[6:8]) * 60
+            # ret += int(k[8:10])
+            res[k]=offset
+            offset += len(line)
+        return res
 
 if __name__ == '__main__':
     dfs=DataFS()
