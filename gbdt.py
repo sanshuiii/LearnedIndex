@@ -35,9 +35,10 @@ class GBDT(Model):
         preds2 = self.bst.predict(inputs)
 
         time_stop = time.time()
-        logging.info(time_stop - time_start, 's')
+        logging.info(str(time_stop - time_start)+ 's')
 
         logging.info("final loss:"+str(max(abs(labels - preds - preds2))))
 
     def query(self, k):
+        k=np.array([[int(k + "0" * (CONFIG["KEYLEN"] - len(k)), 16)]])
         return self.LR.predict(k) + self.bst.predict(k)

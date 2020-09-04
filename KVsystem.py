@@ -56,8 +56,18 @@ class KVsystem:
         X, Y = self.dataFS.gen_train_data()
         self.model.train(X, Y)
 
-    def query(self, key):
+    def _query(self, key):
         return self.dataFS.query(key, self.model.query(key))
+
+    def seek(self, key):
+        return self._query(key)
+
+    def query(self,key):
+        k,v=self._query(key)
+        if k!=key:
+            return None
+        else:
+            return v
 
     def gen_keys(self):
         X, _ = self.dataFS.gen_train_data()

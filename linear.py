@@ -77,13 +77,13 @@ class Linear():
         pre_y = LR.predict(data)
         errs=abs(pre_y-y)
         for idx,err in enumerate(errs):
-            if err>CONFIG["BLOCKSIZE"]:
+            if err[0]>CONFIG["BLOCKSIZE"]:
                 self.GC[int(x[idx])]=int(y[idx])
 
 
     def query(self, k):
-        index = self.group(k)
+        index = int(self.group(k))
         if index in self.GC.keys():
-            return self.GC[k]
+            return self.GC[index]
         offset = self.w[index] * cul_time(k) + self.b[index]
         return int(offset[0][0])
